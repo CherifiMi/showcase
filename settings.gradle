@@ -14,3 +14,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "showcase"
 include ':app'
+include ':common'
+include ':feature_album'
+include ':feature_profile'
+include ':feature_favourite'
