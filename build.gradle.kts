@@ -1,3 +1,4 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -8,11 +9,18 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-/*
-configure(){
-    configure{
-        parallel = true
-        ignoreFailures = false
-        setSource(file(projectDir))
+subprojects {
+    tasks.withType<Test> {
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
     }
-}*/
+}
+
+spotless {
+    kotlin {
+        target("**/*.kt", "**/*.kts")
+        ktlint()
+
+        indentWithSpaces()
+        endWithNewline()
+    }
+}
