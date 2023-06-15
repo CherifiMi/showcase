@@ -1,4 +1,6 @@
-@Suppress("DSL_SCOPE_VIOLATION")
+import com.android.build.api.dsl.ApplicationDefaultConfig
+
+@Suppress("DSL_SCOPE_VIOLATION") // Because of IDE bug https://youtrack.jetbrains.com/issue/KTIJ-19370
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -11,50 +13,86 @@ plugins {
 
 android {
     namespace = "com.example.showcase"
+
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "com.example.showcase"
         minSdk = 26
         targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    defaultConfig {
+        applicationId = "com.igorwojda.showcase"
+
+        versionCode = 1
+        versionName = "0.0.1" // SemVer (Major.Minor.Patch)
+        minSdk = 28
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        multiDexEnabled = true
+
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigFieldFromGradleProperty("apiBaseUrl")
+        buildConfigFieldFromGradleProperty("apiToken")
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles("proguard-android.txt", "proguard-rules.pro")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+
     buildFeatures {
         viewBinding = true
         compose = true
     }
+
     composeOptions {
-        kotlinCompilerExtensionVersion  = libs.versions.kotlinCompilerExtensionVersion.get()
+        kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
     }
-    /*packagingOptions {
-        resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
-        }
-    }*/
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
 dependencies {
+    // Syntax utilizes Gradle TYPESAFE_PROJECT_ACCESSORS feature
     implementation(projects.featureAlbum)
     implementation(projects.featureProfile)
     implementation(projects.featureFavourite)
 }
+
+/*
+Takes value from Gradle project property and sets it as Android build config property eg.
+apiToken variable present in the settings.gradle file will be accessible as BuildConfig.GRADLE_API_TOKEN in the app.
+ */
+fun ApplicationDefaultConfig.buildConfigFieldFromGradleProperty(gradlePropertyName: String) {
+    val propertyValue = project.properties[gradlePropertyName] as? String
+    checkNotNull(propertyValue) { "Gradle property $gradlePropertyName is null" }
+
+    val androidResourceName = "GRADLE_${gradlePropertyName.toSnakeCase()}".toUpperCase()
+    buildConfigField("String", androidResourceName, propertyValue)
+}
+
+fun String.toSnakeCase() = this.split(Regex("(?=[A-Z])")).joinToString("_") { it.toLowerCase() }
+
+
+

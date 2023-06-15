@@ -1,41 +1,63 @@
+@Suppress("DSL_SCOPE_VIOLATION") // Because of IDE bug https://youtrack.jetbrains.com/issue/KTIJ-19370
 plugins {
-    id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.symbolProcessing)
+    alias(libs.plugins.safeArgs)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.testLogger)
+    alias(libs.plugins.junit5Android)
 }
 
 android {
-    namespace 'com.example.feature_favourite'
-    compileSdk 33
+    namespace = "com.example.feature.favourite"
+
+    compileSdk = 33
 
     defaultConfig {
-        minSdk 24
-        targetSdk 33
+        minSdk = 26
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+    buildFeatures {
+        viewBinding = true
+        compose = true
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
+    }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
 dependencies {
+    api(projects.common)
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    testImplementation(libs.bundles.test)
+
+    testRuntimeOnly(libs.junitJupiterEngine)
 }
+
+
+
+
+
+
+
+

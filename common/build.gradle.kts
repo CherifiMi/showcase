@@ -1,4 +1,4 @@
-@Suppress("DSL_SCOPE_VIOLATION")
+@Suppress("DSL_SCOPE_VIOLATION") // Because of IDE bug https://youtrack.jetbrains.com/issue/KTIJ-19370
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -11,44 +11,51 @@ plugins {
 
 android {
     namespace = "com.example.common"
+
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "com.example.showcase"
         minSdk = 26
-        targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles("proguard-android.txt", "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+
     buildFeatures {
         viewBinding = true
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
 dependencies {
+    // See Dependency management section in the README.md
+    // https://github.com/igorwojda/android-showcase#dependency-management
     api(libs.kotlin)
     api(libs.playCore)
     api(libs.coreKtx)
@@ -69,8 +76,9 @@ dependencies {
     api(libs.bundles.room)
     api(libs.bundles.compose)
 
-    testImplementation(projects.libraryTestUtils)
     testImplementation(libs.bundles.test)
 
     testRuntimeOnly(libs.junitJupiterEngine)
 }
+
+
